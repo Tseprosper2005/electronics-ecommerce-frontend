@@ -1,0 +1,65 @@
+/* frontend/css/style.css */
+
+/* Chosen Palette: Calm Harmony */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb; /* Light neutral background */
+    color: #1f2937; /* Dark gray text */
+}
+
+/* Chart Container Styling */
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 700px; /* Max width for charts */
+    margin-left: auto;
+    margin-right: auto;
+    height: 300px; /* Base height for charts */
+    max-height: 400px; /* Max height for charts */
+}
+
+@media (min-width: 768px) {
+    .chart-container {
+        height: 350px;
+    }
+}
+
+/* Custom scrollbar for better aesthetics */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #e5e7eb;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* Tab content display for modals and admin panel */
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* Active tab styling */
+.active-tab {
+    border-bottom: 3px solid #3b82f6; /* Blue-600 */
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* Hide all sections by default, JavaScript will show the active one */
+section {
+    display: none;
+}
+section.active {
+    display: block;
+}

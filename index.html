@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronics E-commerce App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Stripe.js CDN -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Font Awesome for Icons (NEW) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" xintegrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0V4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Application Structure Plan: This SPA is now structured around a central e-commerce flow, integrating product browsing, a shopping cart, and a checkout process, alongside an administrative dashboard. The sticky header provides universal navigation to key sections: Home (dashboard overview), Products (main catalog), Cart (user's shopping cart), My Orders (new for user order history), and Admin (conditional access for management). This design prioritizes a clear user journey for shopping and a distinct, powerful interface for administrators, ensuring all functionalities are easily discoverable and manageable within a single-page context. A new currency selector is prominently placed in the header for global users, and dedicated modals handle user authentication. -->
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center">
+            <a href="#home" class="text-2xl font-bold text-gray-800 mb-2 sm:mb-0">
+                <span role="img" aria-label="electronics icon">⚡</span> E-commerce App
+            </a>
+            <div class="flex flex-wrap justify-center gap-4 items-center">
+                <a href="#products-overview" class="text-gray-600 hover:text-blue-600 transition-colors duration-200 nav-link" data-section="products-overview">Products</a>
+                <a href="#cart" class="text-gray-600 hover:text-blue-600 transition-colors duration-200 nav-link" data-section="cart">Cart (<span id="cart-count">0</span>)</a>
+                <a href="#my-orders" class="text-gray-600 hover:text-blue-600 transition-colors duration-200 hidden nav-link" id="my-orders-nav-link" data-section="my-orders">My Orders</a>
+                <a href="#sales-trends" class="text-gray-600 hover:text-blue-600 transition-colors duration-200 hidden nav-link" id="sales-trends-nav-link" data-section="sales-trends">Sales Trends</a>
+                <a href="#category-performance" class="text-gray-600 hover:text-blue-600 transition-colors duration-200 nav-link" data-section="category-performance">Categories</a>
+                <a href="#admin-panel" class="text-gray-600 hover:text-blue-600 transition-colors duration-200 hidden nav-link" id="admin-nav-link" data-section="admin-panel">Admin</a>
+                <select id="currency-selector" class="ml-4 p-2 border rounded-md text-gray-700">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="XAF">XAF (FCFA)</option>
+                    <option value="XOF">XOF (CFA)</option>
+                    <option value="NGN">NGN (₦)</option>
+                </select>
+                <button id="auth-button" class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-4 rounded-md text-sm ml-4">Login</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section id="home" class="py-20 text-center active">
+            <div class="container mx-auto px-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-8 rounded-lg shadow-md">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
+                    Your One-Stop Shop for Electronic Components
+                </h1>
+                <p class="text-lg text-gray-700 max-w-2xl mx-auto mb-8">
+                    Explore our wide range of electronic circuits, diodes, resistors, and more. Admins have full control over products, sales data, and user management.
+                </p>
+                <a href="#products-overview" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 nav-link" data-section="products-overview">
+                    Shop Now
+                </a>
+            </div>
+        </section>
+
+        <!-- Products Overview Section -->
+        <section id="products-overview" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Our Electronic Components Catalog</h2>
+                <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    Browse our extensive collection of high-quality electronic components. Click on any product for more details, or add it directly to your cart to proceed with your purchase. Prices are shown in your selected currency.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div id="product-list" class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Products will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Shopping Cart Section -->
+        <section id="cart" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Your Shopping Cart</h2>
+                <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    Review the items you've added to your cart. Adjust quantities, remove items, or proceed to checkout when you're ready. The total amount is displayed in your chosen currency.
+                </p>
+
+                <div id="cart-items-container" class="bg-white p-6 rounded-lg shadow-md mb-8">
+                    <!-- Cart items will be dynamically loaded here -->
+                    <p id="empty-cart-message" class="text-center text-gray-500 text-lg py-8">Your cart is empty.</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-between items-center bg-white p-6 rounded-lg shadow-md">
+                    <p class="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">Total: <span id="cart-total">$0.00</span></p>
+                    <button id="checkout-btn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payment Modal -->
+        <div id="paymentModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative">
+                <button id="closePaymentModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Complete Your Order</h3>
+
+                <div class="mb-4">
+                    <label for="shippingAddress" class="block text-gray-700 text-sm font-bold mb-2">Shipping Address</label>
+                    <textarea id="shippingAddress" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Enter your full shipping address" required></textarea>
+                </div>
+
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Select Payment Method</h4>
+                <div class="flex flex-col gap-4 mb-6">
+                    <label class="flex items-center p-4 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+                        <input type="radio" name="paymentMethod" value="paypal" class="form-radio h-5 w-5 text-blue-600">
+                        <span class="ml-3 text-lg font-medium text-gray-700">PayPal (Mock)</span>
+                    </label>
+                    <label class="flex items-center p-4 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+                        <input type="radio" name="paymentMethod" value="stripe" class="form-radio h-5 w-5 text-indigo-600">
+                        <span class="ml-3 text-lg font-medium text-gray-700">Stripe (Credit/Debit Card)</span>
+                    </label>
+                    <label class="flex items-center p-4 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+                        <input type="radio" name="paymentMethod" value="mtn" class="form-radio h-5 w-5 text-yellow-500">
+                        <span class="ml-3 text-lg font-medium text-gray-700">MTN Mobile Money (Mock)</span>
+                    </label>
+                    <label class="flex items-center p-4 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors duration-200">
+                        <input type="radio" name="paymentMethod" value="orange" class="form-radio h-5 w-5 text-orange-500">
+                        <span class="ml-3 text-lg font-medium text-gray-700">Orange Mobile Money (Mock)</span>
+                    </label>
+                </div>
+
+                <div id="stripe-card-element-container" class="hidden">
+                    <h4 class="text-xl font-semibold text-gray-800 mb-4">Enter Card Details</h4>
+                    <div id="card-element" class="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- A Stripe Element will be inserted here. -->
+                    </div>
+                    <div id="card-errors" role="alert" class="text-red-500 text-sm mt-2"></div>
+                </div>
+
+                <button id="payNowBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-all duration-300 w-full disabled:opacity-50 disabled:cursor-not-allowed mt-6">
+                    Pay Now
+                </button>
+                <p id="payment-message" class="text-center mt-4 text-sm text-gray-600"></p>
+            </div>
+        </div>
+
+        <!-- My Orders Section (New) -->
+        <section id="my-orders" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">My Orders</h2>
+                <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    View your complete order history. Click on any order to see its details, including the products purchased, shipping address, and current status.
+                </p>
+
+                <div class="overflow-x-auto bg-gray-50 p-6 rounded-lg shadow-md">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                <th class="py-3 px-6 text-left">Order ID</th>
+                                <th class="py-3 px-6 text-left">Date</th>
+                                <th class="py-3 px-6 text-left">Total</th>
+                                <th class="py-3 px-6 text-left">Status</th>
+                                <th class="py-3 px-6 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="my-orders-list" class="text-gray-600 text-sm font-light">
+                            <!-- User's orders will be dynamically loaded here -->
+                            <tr><td colspan="5" class="py-4 text-center text-gray-500" id="no-orders-message">You have no orders yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Order Details Modal (New) -->
+        <div id="orderDetailsModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative">
+                <button id="closeOrderDetailsModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Order Details - ID: <span id="modalOrderId"></span></h3>
+
+                <div class="mb-4 text-gray-700">
+                    <p><strong>Order Date:</strong> <span id="modalOrderDate"></span></p>
+                    <p><strong>Total Amount:</strong> <span id="modalOrderTotal"></span></p>
+                    <p><strong>Status:</strong> <span id="modalOrderStatus"></span></p>
+                    <p><strong>Payment Status:</strong> <span id="modalOrderPaymentStatus"></span></p>
+                    <p><strong>Shipping Address:</strong> <span id="modalOrderShippingAddress"></span></p>
+                </div>
+
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Items in Order:</h4>
+                <div id="modalOrderItems" class="space-y-4">
+                    <!-- Order items will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Sales Trends Section (Admin Only) -->
+        <section id="sales-trends" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Sales Trends Over Time (Admin View)</h2>
+                <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    This section is visible only to administrators, providing critical insights into our sales trajectory. Analyze monthly revenue and units sold to identify growth patterns and seasonal variations in electronics demand.
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div class="bg-gray-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Monthly Revenue</h3>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-gray-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Units Sold Over Time</h3>
+                        <div class="chart-container">
+                            <canvas id="unitsSoldChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Category Performance Section -->
+        <section id="category-performance" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Category Performance</h2>
+                <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    Dive into how different electronic component categories contribute to our overall sales. The donut chart shows revenue distribution, while the bar chart compares average prices.
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Revenue by Category</h3>
+                        <div class="chart-container">
+                            <canvas id="categoryRevenueChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Average Price by Category</h3>
+                        <div class="chart-container">
+                            <canvas id="avgPriceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Panel Section -->
+        <section id="admin-panel" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-gray-800 text-center mb-8">Admin Dashboard</h2>
+                <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    This powerful section allows administrators to manage products, update inventory, oversee all customer orders, and manage user accounts. Use the tabs below to navigate between different management functionalities.
+                </p>
+
+                <div class="bg-gray-100 p-6 rounded-lg shadow-md">
+                    <div class="flex border-b border-gray-300 mb-6">
+                        <button class="px-6 py-3 text-lg font-medium text-gray-700 border-r border-gray-300 admin-tab-btn active-tab" data-tab="manage-products">Manage Products</button>
+                        <button class="px-6 py-3 text-lg font-medium text-gray-700 border-r border-gray-300 admin-tab-btn" data-tab="manage-orders">Manage Orders</button>
+                        <button class="px-6 py-3 text-lg font-medium text-gray-700 admin-tab-btn" data-tab="manage-users">Manage Users</button>
+                        <button class="px-6 py-3 text-lg font-medium text-gray-700 admin-tab-btn" data-tab="manage-messages">Manage Messages</button> <!-- NEW: Admin Message Tab -->
+                    </div>
+
+                    <div id="manage-products" class="tab-content active">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Manage Products</h3>
+                        <form id="product-form" class="mb-8 p-4 bg-white rounded-lg shadow-sm">
+                            <input type="hidden" id="product-id">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label for="product-name" class="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
+                                    <input type="text" id="product-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                </div>
+                                <div>
+                                    <label for="product-category" class="block text-gray-700 text-sm font-bold mb-2">Category</label>
+                                    <input type="text" id="product-category" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label for="product-price" class="block text-gray-700 text-sm font-bold mb-2">Price (USD)</label>
+                                    <input type="number" id="product-price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" step="0.01" min="0" required>
+                                </div>
+                                <div>
+                                    <label for="product-stock" class="block text-gray-700 text-sm font-bold mb-2">Stock Quantity</label>
+                                    <input type="number" id="product-stock" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" min="0" required>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="product-image-url" class="block text-gray-700 text-sm font-bold mb-2">Image URL</label>
+                                <input type="text" id="product-image-url" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            </div>
+                            <div class="mb-6">
+                                <label for="product-description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                                <textarea id="product-description" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                            </div>
+                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Save Product</button>
+                            <button type="button" id="clear-product-form" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">Clear Form</button>
+                        </form>
+
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Existing Products</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <thead>
+                                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                        <th class="py-3 px-6 text-left">ID</th>
+                                        <th class="py-3 px-6 text-left">Name</th>
+                                        <th class="py-3 px-6 text-left">Category</th>
+                                        <th class="py-3 px-6 text-left">Price (USD)</th>
+                                        <th class="py-3 px-6 text-left">Stock</th>
+                                        <th class="py-3 px-6 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-product-list" class="text-gray-600 text-sm font-light">
+                                    <!-- Admin products will be dynamically loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="manage-orders" class="tab-content">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Manage Orders</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <thead>
+                                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                        <th class="py-3 px-6 text-left">Order ID</th>
+                                        <th class="py-3 px-6 text-left">User</th>
+                                        <th class="py-3 px-6 text-left">Total (USD)</th>
+                                        <th class="py-3 px-6 text-left">Status</th>
+                                        <th class="py-3 px-6 text-left">Payment Status</th>
+                                        <th class="py-3 px-6 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-order-list" class="text-gray-600 text-sm font-light">
+                                    <!-- Admin orders will be dynamically loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="manage-users" class="tab-content">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Manage Users</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <thead>
+                                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                        <th class="py-3 px-6 text-left">ID</th>
+                                        <th class="py-3 px-6 text-left">Username</th>
+                                        <th class="py-3 px-6 text-left">Email</th>
+                                        <th class="py-3 px-6 text-left">Role</th>
+                                        <th class="py-3 px-6 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-user-list" class="text-gray-600 text-sm font-light">
+                                    <!-- Admin users will be dynamically loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Admin Message Management Tab -->
+                    <div id="manage-messages" class="tab-content">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6">Manage Messages</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                                <thead>
+                                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                        <th class="py-3 px-6 text-left">ID</th>
+                                        <th class="py-3 px-6 text-left">Sender</th>
+                                        <th class="py-3 px-6 text-left">Receiver</th>
+                                        <th class="py-3 px-6 text-left">Subject</th>
+                                        <th class="py-3 px-6 text-left">Status</th>
+                                        <th class="py-3 px-6 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-message-list" class="text-gray-600 text-sm font-light">
+                                    <!-- Admin messages will be dynamically loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8 text-center mt-auto">
+        <div class="container mx-auto px-4">
+            <p>&copy; 2025 Electronics E-commerce. All rights reserved.</p>
+            <p class="text-sm mt-2">Designed for interactive shopping and data exploration.</p>
+        </div>
+    </footer>
+
+    <!-- Product Detail Modal -->
+    <div id="productDetailModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative">
+            <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <h3 id="modalProductName" class="text-2xl font-bold text-gray-800 mb-4"></h3>
+            <img id="modalProductImage" src="" alt="Product Image" class="w-full h-48 object-contain mb-4 rounded-md bg-gray-100">
+            <p id="modalProductDescription" class="text-gray-700 mb-2"></p>
+            <p class="text-lg font-semibold text-gray-900">Price: <span id="modalProductPrice"></span></p>
+            <p class="text-md text-gray-600">Stock: <span id="modalProductStock"></span> units</p>
+            <p class="text-md text-gray-600">Category: <span id="modalProductCategory"></span></p>
+            <button class="mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md text-sm w-full add-to-cart-btn" data-product-id="">Add to Cart</button>
+        </div>
+    </div>
+
+    <!-- Login/Register Modal -->
+    <div id="authModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative">
+            <button id="closeAuthModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <h3 id="authModalTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center">Login / Register</h3>
+
+            <div class="flex border-b border-gray-300 mb-6">
+                <button class="flex-1 px-4 py-2 text-lg font-medium text-gray-700 border-r border-gray-300 auth-tab-btn active-tab" data-tab="login-form">Login</button>
+                <button class="flex-1 px-4 py-2 text-lg font-medium text-gray-700 auth-tab-btn" data-tab="register-form">Register</button>
+            </div>
+
+            <form id="login-form" class="tab-content active">
+                <div class="mb-4">
+                    <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-6">
+                    <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline">Login</button>
+            </form>
+
+            <form id="register-form" class="tab-content">
+                <div class="mb-4">
+                    <label for="registerUsername" class="block text-gray-700 text-sm font-bold mb-2">Username</label>
+                    <input type="text" id="registerUsername" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-6">
+                    <label for="registerPassword" class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline">Register</button>
+            </form>
+            <p id="auth-message" class="text-center mt-4 text-sm text-gray-600"></p>
+        </div>
+    </div>
+
+    <!-- Message Box for Alerts -->
+    <div id="messageBox" class="fixed bottom-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg z-[100] hidden">
+        <p id="messageText"></p>
+        <button id="closeMessageBox" class="absolute top-1 right-2 text-white text-xl font-bold">&times;</button>
+    </div>
+
+    <!-- Floating Chat Icon (NEW) -->
+    <button id="chat-icon" class="fixed bottom-8 right-8 bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-full shadow-lg z-40 transition-transform duration-200 transform hover:scale-110 hidden">
+        <i class="fas fa-comments text-2xl"></i>
+    </button>
+
+    <!-- Message Portal Modal (NEW) -->
+    <div id="messagePortalModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative flex flex-col h-[90vh]">
+            <button id="closeMessagePortalModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Message Portal</h3>
+
+            <div class="flex border-b border-gray-300 mb-4">
+                <button class="flex-1 px-4 py-2 text-lg font-medium text-gray-700 border-r border-gray-300 message-tab-btn active-tab" data-tab="inbox">Inbox</button>
+                <button class="flex-1 px-4 py-2 text-lg font-medium text-gray-700 message-tab-btn" data-tab="send-message">Send Message</button>
+            </div>
+
+            <!-- Inbox Tab Content -->
+            <div id="inbox" class="tab-content active flex-grow overflow-y-auto p-200">
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Your Messages</h4>
+                <div id="message-list" class="space-y-4">
+                    <!-- Messages will be dynamically loaded here -->
+                    <p id="no-messages-message" class="text-center text-gray-500 py-8">No messages found.</p>
+                </div>
+            </div>
+
+            <!-- Send Message Tab Content -->
+            <div id="send-message" class="tab-content flex-grow flex flex-col p-2">
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Send a New Message</h4>
+                <form id="send-message-form" class="flex flex-col flex-grow">
+                    <div class="mb-4">
+                        <label for="message-subject" class="block text-gray-700 text-sm font-bold mb-2">Subject (Optional)</label>
+                        <input type="text" id="message-subject" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="e.g., Complaint about Order #123">
+                    </div>
+                    <div class="mb-6 flex-grow flex flex-col">
+                        <label for="message-text" class="block text-gray-700 text-sm font-bold mb-2">Message</label>
+                        <textarea id="message-text" rows="8" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-grow" placeholder="Type your message here..." required></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Detail Modal (NEW) -->
+    <div id="messageDetailModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative">
+            <button id="closeMessageDetailModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Message Details</h3>
+
+            <div class="mb-4 text-gray-700">
+                <p><strong>From:</strong> <span id="detailMessageSender"></span></p>
+                <p><strong>To:</strong> <span id="detailMessageReceiver"></span></p>
+                <p><strong>Subject:</strong> <span id="detailMessageSubject"></span></p>
+                <p><strong>Sent At:</strong> <span id="detailMessageSentAt"></span></p>
+                <p><strong>Status:</strong> <span id="detailMessageStatus"></span></p>
+            </div>
+
+            <h4 class="text-xl font-semibold text-gray-800 mb-4">Message:</h4>
+            <div id="detailMessageText" class="bg-gray-100 p-4 rounded-md overflow-y-auto max-h-48 mb-4">
+                <!-- Message text will be loaded here -->
+            </div>
+
+            <!-- Admin Reply Form (Conditional) -->
+            <div id="admin-reply-section" class="hidden mt-4 pt-4 border-t border-gray-200">
+                <h4 class="text-xl font-semibold text-gray-800 mb-4">Reply to User</h4>
+                <form id="admin-reply-form">
+                    <input type="hidden" id="reply-receiver-id">
+                    <input type="hidden" id="reply-subject">
+                    <div class="mb-4">
+                        <label for="reply-message-text" class="block text-gray-700 text-sm font-bold mb-2">Your Reply</label>
+                        <textarea id="reply-message-text" rows="4" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
+                    </div>
+                    <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Send Reply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Main JavaScript Entry Point (type="module" is crucial) -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
