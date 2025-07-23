@@ -2,7 +2,7 @@
 
 // IMPORTANT: Replace this with your deployed backend API URL when hosting!
 // For local development, it's http://localhost:3001
-const BASE_URL = 'YOUR_DEPLOYED_BACKEND_API_URL'; // e.g., 'https://your-ecommerce-backend.onrender.com'
+const BASE_URL = 'https://ecommerce-backend-api-omvv.onrender.com/api'; // Your deployed Render backend API base URL
 
 // Utility to make authenticated API requests
 async function fetchApi(endpoint, method = 'GET', data = null, authRequired = false) {
