@@ -4,7 +4,7 @@ import { showMessage } from './utils.js';
 
 // Base URL for your deployed backend API
 // IMPORTANT: Ensure this matches your live Render backend URL
-const BASE_URL = 'https://ecommerce-backend-api-omvv.onrender.com/api';
+const BASE_URL = 'https://ecommerce-backend-api-0s7r.onrender.com/api'; // UPDATED TO NEW BACKEND URL
 
 // --- Token Management ---
 let jwtToken = localStorage.getItem('jwtToken'); // Initialize from local storage
@@ -93,7 +93,7 @@ export const userApi = {
     getAllUsers: () => apiRequest('/users', 'GET', null, true), // Admin only
     getUserById: (id) => apiRequest(`/users/${id}`, 'GET', null, true), // Admin or user themselves
     updateUser: (id, userData) => apiRequest(`/users/${id}`, 'PUT', userData, true), // Admin or user themselves
-    deleteUser: (id) => apiRequest(`/users/${id}`, 'DELETE', null, true), // Admin only
+    deleteUser: (id) => apiRequest('/users/${id}', 'DELETE', null, true), // Admin only
 };
 
 export const messageApi = {
